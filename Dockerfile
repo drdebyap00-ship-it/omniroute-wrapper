@@ -1,19 +1,15 @@
 # Wrapper Dockerfile untuk fix permission issue di /data
-# Base dari omniroute:latest dan fix ownership untuk node user
+# Base dari omniroute:latest dengan runtime permission fix
 FROM diegosouzapw/omniroute:latest
 
 USER root
 
-# Fix permission: ensure /data owned by node user (UID 1000)
-# Create dengan proper ownership agar app bisa write tanpa EACCES error
-RUN mkdir -p /data && \
-    chown -R node:node /data && \
-    chmod 755 /data
+# Copy entrypoint script yang fix permission saat container start
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
-# Fix entrypoint — base image punya check-permissions.sh yang strict
-# Override dengan direct start untuk development/test
-ENTRYPOINT []
-CMD ["node", "dev/run-standalone.mjs"]
-
-# Healthcheck inherit dari base image
+# Override ENTRYPOINT dengan script kita yang:
+# 1. Fix /data ownership (sebagai root)
+# 2. Exec app sebagai node user
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
