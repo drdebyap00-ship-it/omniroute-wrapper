@@ -2,16 +2,16 @@
 set -e
 
 # Fix permission for /data volume di Railway
-# Volume di-mount setelah build, jadi permission-nya default (root)
-# Kita fix as root sebelum switch ke node user
+# Volume di-mount setelah build dengan ownership root, kita chmod jadi world-writable
+# Ini temporary fix sampai image asli di-update
 
 if [ "$(id -u)" = "0" ]; then
-  echo "Fixing /data directory permissions for node user..."
+  echo "Fixing /data directory permissions..."
   mkdir -p /data
-  chown -R node:node /data
-  chmod -R 755 /data
+  chmod 777 /data
+  echo "/data permissions fixed (mode 777)"
 fi
 
-# Exec original app sebagai node user
+# Run app
 exec node dev/run-standalone.mjs
 
